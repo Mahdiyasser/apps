@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>دوّر — لعبة الأسئلة الاجتماعية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d12;
+      --surface:   #15151e;
+      --card:      #1c1c28;
+      --border:    rgba(255,255,255,0.07);
+      --orange:    #ff6b35;
+      --pink:      #ff3b6b;
+      --purple:    #9b59b6;
+      --teal:      #00c9a7;
+      --yellow:    #f7c21e;
+      --text:      #f0eeff;
+      --muted:     #7b7a95;
+      --grad:      linear-gradient(135deg, #ff6b35 0%, #ff3b6b 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(13,13,18,0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 38px; height: 38px;
+      background: var(--grad);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .nav-logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .nav-dl-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 22px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .nav-dl-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    /* glowing blobs */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -80px; right: -120px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: drift 8s ease-in-out infinite alternate;
+    }
+
+    .hero-blob2 {
+      position: absolute;
+      bottom: -100px; left: -80px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(155,89,182,0.14) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: drift 11s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.06); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,107,53,0.12);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--orange);
+      font-weight: 700;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-dice {
+      font-size: 80px;
+      display: block;
+      margin-bottom: 20px;
+      animation: bounceIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both, spin3d 6s ease-in-out infinite 1s;
+      filter: drop-shadow(0 0 30px rgba(255,107,53,0.5));
+    }
+
+    @keyframes bounceIn {
+      from { opacity: 0; transform: scale(0.3) rotate(-20deg); }
+      to   { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes spin3d {
+      0%, 100% { transform: rotate(0deg); }
+      25%       { transform: rotate(-8deg) scale(1.05); }
+      75%       { transform: rotate(8deg) scale(1.05); }
+    }
+
+    .hero-title {
+      font-size: clamp(64px, 12vw, 110px);
+      font-weight: 900;
+      line-height: 1;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(18px, 3vw, 24px);
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 40px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-subtitle span {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.7s 0.35s ease both;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--grad);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 14px;
+      padding: 16px 34px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      box-shadow: 0 8px 32px rgba(255,107,53,0.4);
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-download::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-download:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(255,107,53,0.5); }
+    .btn-download:hover::before { opacity: 1; }
+    .btn-download:active { transform: translateY(0); }
+
+    .btn-download .dl-icon { font-size: 22px; }
+
+    .btn-scroll {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .btn-scroll:hover { color: var(--text); }
+
+    .hero-apk-note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      animation: fadeUp 0.7s 0.5s ease both;
+    }
+
+    .hero-apk-note span {
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-family: monospace;
+      color: var(--teal);
+    }
+
+    /* ── PHONE MOCKUP ── */
+    .phone-wrap {
+      position: relative;
+      margin-top: 64px;
+      animation: fadeUp 0.9s 0.4s ease both;
+    }
+
+    .phone-shell {
+      width: 260px;
+      height: 520px;
+      background: var(--card);
+      border-radius: 40px;
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 0 0 1px rgba(255,107,53,0.15),
+        0 40px 80px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .phone-notch {
+      width: 80px; height: 22px;
+      background: var(--bg);
+      border-radius: 0 0 14px 14px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .phone-screen {
+      padding: 16px;
+      height: 100%;
+      background: linear-gradient(160deg, #12121c 0%, #1a1225 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ps-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ps-counter {
+      background: rgba(255,107,53,0.2);
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .ps-timer {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2.5px solid var(--orange);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .ps-turn {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .ps-turn strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ps-card {
+      background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,59,107,0.08));
+      border: 1px solid rgba(255,107,53,0.2);
+      border-radius: 18px;
+      padding: 20px 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .ps-cat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,107,53,0.15);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      color: var(--orange);
+      font-weight: 700;
+    }
+
+    .ps-q {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .ps-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ps-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: default;
+    }
+
+    .ps-btn-skip { background: rgba(255,255,255,0.08); color: var(--muted); }
+    .ps-btn-next { background: var(--grad); color: #fff; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      padding: 60px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-item {
+      text-align: center;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .stat-num {
+      font-size: 48px;
+      font-weight: 900;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .stat-desc { font-size: 15px; color: var(--muted); margin-top: 6px; font-weight: 500; }
+
+    /* ── SECTION ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 80px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      background: var(--grad);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover { border-color: rgba(255,107,53,0.4); transform: translateY(-4px); }
+    .feature-card:hover::before { opacity: 0.04; }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* icon backgrounds */
+    .ic-orange { background: rgba(255,107,53,0.15); }
+    .ic-pink    { background: rgba(255,59,107,0.15); }
+    .ic-purple  { background: rgba(155,89,182,0.15); }
+    .ic-teal    { background: rgba(0,201,167,0.15); }
+    .ic-yellow  { background: rgba(247,194,30,0.15); }
+    .ic-blue    { background: rgba(52,152,219,0.15); }
+
+    /* ── CATEGORIES ── */
+    .cats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 40px;
+    }
+
+    .cat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      cursor: default;
+    }
+
+    .cat-pill:hover { transform: scale(1.05); }
+
+    .cat-pill[data-color="#FF6B35"] { border-color: rgba(255,107,53,0.4); }
+    .cat-pill[data-color="#F7C59F"] { border-color: rgba(247,197,159,0.4); }
+    .cat-pill[data-color="#E84855"] { border-color: rgba(232,72,85,0.4); }
+    .cat-pill[data-color="#3D9970"] { border-color: rgba(61,153,112,0.4); }
+    .cat-pill[data-color="#9B59B6"] { border-color: rgba(155,89,182,0.4); }
+    .cat-pill[data-color="#FF69B4"] { border-color: rgba(255,105,180,0.4); }
+    .cat-pill[data-color="#FF1493"] { border-color: rgba(255,20,147,0.4); }
+
+    /* ── SETTINGS SHOWCASE ── */
+    .settings-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    .setting-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .setting-item-icon { font-size: 28px; flex-shrink: 0; }
+
+    .setting-item-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .setting-item-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 24px;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(255,107,53,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .cta-title em {
+      font-style: normal;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .cta-desc {
+      font-size: 17px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .cta-android-note {
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .android-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(61,220,132,0.1);
+      border: 1px solid rgba(61,220,132,0.2);
+      color: #3ddc84;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* ── HOW TO INSTALL ── */
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 48px;
+      max-width: 600px;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .step-num {
+      width: 40px; height: 40px;
+      flex-shrink: 0;
+      background: var(--grad);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.35);
+    }
+
+    .step-body-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .step-body-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .footer-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--grad);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+    }
+
+    .footer-logo-text { font-size: 18px; font-weight: 900; color: var(--text); }
+
+    .footer-note { font-size: 13px; color: var(--muted); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 0 auto;
+      max-width: 1100px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-dl-btn span { display: none; }
+      .settings-showcase { grid-template-columns: 1fr; }
+      footer { flex-direction: column; text-align: center; }
+    }
+
+    @media (max-width: 500px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">🎲</div>
+      <span class="nav-logo-text">دوّر</span>
+    </a>
+    <a href="./Dawwar.apk" class="nav-dl-btn" download>
+      <span>⬇ تحميل</span>
+    </a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-blob2"></div>
+
+    <div class="hero-badge">🎲 تشغيل على Android</div>
+    <span class="hero-dice">🎲</span>
+    <h1 class="hero-title">دوّر</h1>
+    <p class="hero-subtitle">لعبة الأسئلة <span>الاجتماعية</span> — للجلسات العائلية والأصدقاء</p>
+
+    <div class="hero-actions">
+      <a href="./Dawwar.apk" class="btn-download" download>
+        <span class="dl-icon">⬇</span>
+        <span>حمّل التطبيق مجاناً</span>
+      </a>
+      <a href="#features" class="btn-scroll">اعرف أكتر ↓</a>
+    </div>
+
+    <p class="hero-apk-note">ملف <span>Dawwar.apk</span> — Android 6.0+</p>
+
+    <div class="phone-wrap">
+      <div class="phone-shell">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ps-header">
+            <div class="ps-counter">سؤال ٣</div>
+            <div class="ps-timer">٢٧</div>
+          </div>
+          <div class="ps-turn">دور <strong>سارة ✨</strong></div>
+          <div class="ps-card">
+            <div class="ps-cat"><span>😳</span> اعترف!</div>
+            <p class="ps-q">اعترف بأكبر كدبة قلتها وصدّقها الناس 👀</p>
+          </div>
+          <div class="ps-btns">
+            <button class="ps-btn ps-btn-skip">تخطي 😅</button>
+            <button class="ps-btn ps-btn-next">جاوب ✅</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-item reveal">
+      <div class="stat-num">+70</div>
+      <div class="stat-desc">سؤال جاهز</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">7</div>
+      <div class="stat-desc">فئة مختلفة</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">∞</div>
+      <div class="stat-desc">جلسات ممكنة</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num">0</div>
+      <div class="stat-desc">مصاري — مجاني تماماً</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-label">⚡ المميزات</div>
+    <h2 class="section-title">كل اللي محتاجه في جلستك</h2>
+    <p class="section-desc">دوّر مش بس أسئلة — هو تجربة كاملة عشان تكسر الجمود وتحمّس الجلسة</p>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-orange">⏱</div>
+        <div class="feature-title">مؤقت لكل سؤال</div>
+        <div class="feature-desc">اختار ٣٠ أو ٤٥ ثانية أو دقيقة — أو حدّد وقت مخصص من ٥ لـ٣٠٠ ثانية. الضغط بيضيف حماس!</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-pink">😅</div>
+        <div class="feature-title">نظام التخطي</div>
+        <div class="feature-desc">كل لاعب عنده عدد محدد تخطيات — لما يخلص يتعاقب. الضغط من هنا وهناك!</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-purple">💡</div>
+        <div class="feature-title">أسئلة مخصصة</div>
+        <div class="feature-desc">أضف أسئلتك الخاصة للجلسة، وفيه خيار إخفاء مين كتب السؤال عشان تضيف غموض!</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-teal">🗂</div>
+        <div class="feature-title">فلترة الفئات</div>
+        <div class="feature-desc">اختار الفئات اللي تناسب جلستك — مثلاً شيل "في الأوضة" لو الجلسة عائلية!</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-yellow">📊</div>
+        <div class="feature-title">أسئلة لكل لاعب</div>
+        <div class="feature-desc">حدد عدد الأسئلة اللي كل لاعب هيجاوبها — أو خليها بلا حد للجلسات الطويلة.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon ic-blue">🔁</div>
+        <div class="feature-title">تكرار الأسئلة</div>
+        <div class="feature-desc">لو عايز تلعب أكتر من جولة، حدد عدد مرات تكرار كل سؤال — أو خليها تتكرر بلا حد.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CATEGORIES -->
+  <section id="categories">
+    <div class="section-label">🗂 الفئات</div>
+    <h2 class="section-title">٧ فئات لكل مزاج</h2>
+    <p class="section-desc">من الأسئلة الخفيفة للأسئلة اللي بتحرج — في فئة لكل جلسة</p>
+
+    <div class="cats-grid">
+      <div class="cat-pill reveal" data-color="#FF6B35">🪞 عن نفسك</div>
+      <div class="cat-pill reveal" data-color="#F7C59F">🤔 لو كنت...</div>
+      <div class="cat-pill reveal" data-color="#E84855">😳 اعترف!</div>
+      <div class="cat-pill reveal" data-color="#3D9970">💬 رأيك في...</div>
+      <div class="cat-pill reveal" data-color="#9B59B6">🔥 تحدي</div>
+      <div class="cat-pill reveal" data-color="#FF69B4">🙈 يا حلاوة!</div>
+      <div class="cat-pill reveal" data-color="#FF1493">👀 في الأوضة</div>
+    </div>
+
+    <p class="section-desc" style="margin-top: 28px; font-size: 14px;">
+      فئة <strong style="color:var(--text)">في الأوضة 👀</strong> بتحتوي على أسئلة عن اللاعبين في الجلسة مع بعض —
+      الأسئلة دي بتحمّس الجلسة بشكل مختلف خالص!
+    </p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SETTINGS -->
+  <section id="settings">
+    <div class="section-label">⚙️ الإعدادات</div>
+    <h2 class="section-title">الإعدادات كلها في إيدك</h2>
+    <p class="section-desc">خصّص تجربتك قبل ما تبدأ اللعب — مافيش جلستين لازم تكونوا زي بعض</p>
+
+    <div class="settings-showcase reveal">
+      <div class="setting-item">
+        <span class="setting-item-icon">👥</span>
+        <div>
+          <div class="setting-item-title">أسماء اللاعبين</div>
+          <div class="setting-item-desc">أضف أسماء كل اللي هيلعبوا والتطبيق يدير الأدوار تلقائي</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <span class="setting-item-icon">⏱</span>
+        <div>
+          <div class="setting-item-title">وقت السؤال</div>
+          <div class="setting-item-desc">٣٠، ٤٥، ٦٠ ثانية — أو أي وقت من اختيارك</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <span class="setting-item-icon">😅</span>
+        <div>
+          <div class="setting-item-title">تخطيات لكل لاعب</div>
+          <div class="setting-item-desc">من ١ لـ٣ أو بلا حد — اللي يتخطى أكتر يتعاقب</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <span class="setting-item-icon">📊</span>
+        <div>
+          <div class="setting-item-title">أسئلة لكل لاعب</div>
+          <div class="setting-item-desc">٣، ٥، ١٠ أو بلا حد حسب وقتكم ومزاجكم</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- HOW TO INSTALL -->
+  <section id="install">
+    <div class="section-label">📲 التثبيت</div>
+    <h2 class="section-title">كيف تثبّت التطبيق؟</h2>
+    <p class="section-desc">التطبيق بيشتغل على Android — التثبيت سهل وبياخد دقيقتين بس</p>
+
+    <div class="steps-list">
+      <div class="step-row reveal">
+        <div class="step-num">١</div>
+        <div>
+          <div class="step-body-title">حمّل ملف الـ APK</div>
+          <div class="step-body-desc">اضغط زرار "حمّل التطبيق" وهينزل الملف على جهازك مباشرة</div>
+        </div>
+      </div>
+      <div class="step-row reveal">
+        <div class="step-num">٢</div>
+        <div>
+          <div class="step-body-title">فعّل تثبيت من مصادر غير معروفة</div>
+          <div class="step-body-desc">روح الإعدادات ← الأمان أو التطبيقات ← فعّل "تثبيت من مصادر مجهولة" للمتصفح أو مدير الملفات</div>
+        </div>
+      </div>
+      <div class="step-row reveal">
+        <div class="step-num">٣</div>
+        <div>
+          <div class="step-body-title">افتح الملف وثبّته</div>
+          <div class="step-body-desc">افتح الـ APK من إشعار التحميل أو مدير الملفات، واضغط "تثبيت"</div>
+        </div>
+      </div>
+      <div class="step-row reveal">
+        <div class="step-num">٤</div>
+        <div>
+          <div class="step-body-title">العب وانبسط! 🎉</div>
+          <div class="step-body-desc">افتح دوّر، أدخل أسماء اللاعبين، واضغط "يلا نلعب"</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2 class="cta-title">خلصت الكلام — <em>حمّل دلوقتي</em></h2>
+    <p class="cta-desc">مجاني ١٠٠٪ • بدون إعلانات • بيشتغل offline</p>
+    <a href="./Dawwar.apk" class="btn-download" download>
+      <span class="dl-icon">⬇</span>
+      <span>تحميل Dawwar.apk</span>
+    </a>
+    <div class="cta-android-note">
+      <span class="android-badge">🤖 Android</span>
+      <span>متوافق مع Android 6.0 وأحدث</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="#" class="footer-logo">
+      <div class="footer-logo-icon">🎲</div>
+      <span class="footer-logo-text">دوّر</span>
+    </a>
+    <span class="footer-note">لعبة الأسئلة الاجتماعية — استمتع بجلستك 🎊</span>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Staggered delay for grid children
+    document.querySelectorAll('.features-grid .feature-card, .stats-bar .stat-item').forEach((el, i) => {
+      el.style.transitionDelay = `${i * 0.08}s`;
+    });
+  </script>
+</body>
+</html>
