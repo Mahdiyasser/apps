@@ -55,7 +55,7 @@ LecSnap was created to solve a common student struggle: a system gallery clutter
 I built LecSnap to help students take control of their learning materials with a fast, responsive, and reliable tool.
 
 ### 🔗 Contact & Socials
-- **Website**: [mahdiyasser.site](https://mahdiyasser.site)
+- **Website**: [mahdiyasser.com](https://mahdiyasser.com)
 - **GitHub**: [@Mahdiyasser](https://github.com/Mahdiyasser)
 - **Instagram**: [@mahdiyasser1](https://instagram.com/mahdiyasser1)
 - **Facebook**: [@mahdy.elsmak.1](https://facebook.com/mahdy.elsmak.1)
